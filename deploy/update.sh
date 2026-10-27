@@ -11,6 +11,7 @@ if [ "$source_dir" != "$target" ]; then
   cp "$source_dir/compose.yml" "$target/compose.yml"
 fi
 sudo docker compose up -d --build
+python3 deploy/update-caddy.py
 for attempt in $(seq 1 15); do
   if curl -fsS http://127.0.0.1:38081/api/v1/health; then exit 0; fi
   sleep 3

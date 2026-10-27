@@ -10,6 +10,7 @@ Aplikasi Android Kotlin native/Jetpack Compose dengan API Python FastAPI dan Pos
 - Hanya pengurus RT dapat mendaftarkan warga dan membuat PIN awal. Warga dapat mengganti PIN. Reset PIN mencabut sesi lama.
 - Tagihan IPL per periode, konfirmasi transfer manual, persetujuan/penolakan pengurus, dan riwayat status. Pembuatan periode yang sama tidak menggandakan tagihan.
 - Berita/pengumuman RT, ringkasan kas dari pembayaran terverifikasi, pencatatan pengeluaran, laporan warga dan status tindak lanjut.
+- Satu foto opsional pada kabar RT dan laporan lingkungan, dengan pratinjau, ganti/hapus sebelum dikirim, serta tampilan foto yang dapat diperbesar. Tanpa foto tetap dapat diterbitkan. Photo Picker hanya memberikan akses ke gambar yang dipilih pengguna.
 - Isolasi data antar-RT di API, audit aktivitas, pembatasan percobaan login di PostgreSQL, pencabutan sesi saat logout.
 - Layout ponsel/tablet/layar lebar, UI bahasa Indonesia, halaman kebijakan privasi serta pengajuan penghapusan akun.
 
@@ -52,6 +53,8 @@ Tambahkan `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, dan `TWILIO_VERIFY_SERVICE_
 Screenshot dan smoke test Android dijalankan pada emulator lokal. Sumber screenshot asli disimpan lokal dalam `captures` (diabaikan Git); aset final di `store`. Generator aset: `npm ci --prefix tools` lalu `node tools/assets.mjs` setelah screenshot tersedia.
 
 ## Operasional
+
+Foto disimpan sebagai JPEG dalam PostgreSQL sehingga ikut dalam cadangan pg_dump. Backend memvalidasi JPEG/PNG/WebP maksimal 2 MB, memperkecil gambar, dan membuang metadata EXIF/GPS. Android menyiapkan foto secara otomatis sebelum upload. Endpoint foto membutuhkan sesi: foto kabar dapat dilihat warga RT yang sama, sedangkan foto laporan hanya oleh pelapor dan pengurus RT-nya. Migrasi tabel `photos` otomatis saat API dimulai; data lama tanpa foto tetap didukung. Reverse proxy menerima request maksimal 4 MB untuk payload gambar terenkode.
 
 Lihat [panduan pengelolaan beberapa RT](deploy/OPERASIONAL.md) untuk membuat pengurus RT baru, mengatur rekening masing-masing RT, serta menjalankan alur IPL. Hasil pemeriksaan rilis tersedia di [VERIFIKASI.md](VERIFIKASI.md).
 

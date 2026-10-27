@@ -1,4 +1,12 @@
-# Pemeriksaan rilis 1.0.0
+# Pemeriksaan rilis 1.0.1 (2) — foto opsional
+
+- Foto opsional tersedia pada form kabar RT dan laporan lingkungan. Pengguna dapat memilih, melihat pratinjau, mengganti, menghapus sebelum kirim, dan memperbesar foto yang telah dimuat. Form tetap dapat dikirim tanpa foto; kesalahan pengiriman mempertahankan isi form.
+- Backend kandidat: 14 pengujian integrasi lulus pada database terpisah. Mencakup publikasi tanpa foto, validasi ukuran/format, normalisasi orientasi dan pembuangan EXIF, akses lintas RT, pembatasan foto laporan bagi pelapor/pengurus, serta penghapusan foto saat berita dihapus.
+- Uji HTTPS produksi dengan RT sementara: kirim tanpa foto berhasil; upload gambar dengan payload melebihi 128 KB berhasil melewati reverse proxy; JPEG dapat diambil dengan sesi dan ditolak tanpa sesi. RT, berita, foto, dan sesi uji sudah dihapus.
+- `lintRelease assembleRelease bundleRelease :app:compileDebugAndroidTestKotlin`: berhasil. Lint 0 error. APK diverifikasi tanda tangan dan alignment 16 KB; sertifikat sama dengan rilis 1.0.0. Photo Picker baru belum diuji melalui interaksi manual pada perangkat; integrasi native telah dikompilasi dan kontrak upload diuji di API.
+- API, migrasi tabel `photos`, kebijakan privasi, serta batas request 4 MB sudah diterapkan di server. Foto disimpan dalam PostgreSQL dan ikut cadangan basis data. Konten lama tanpa foto tetap didukung.
+
+## Arsip pemeriksaan rilis 1.0.0
 
 - Backend FastAPI/PostgreSQL: 8 pengujian integrasi lulus pada database terpisah `rtsmartpro_test`. Mencakup autentikasi, pembatasan login, otorisasi pengurus, isolasi RT, tagihan, verifikasi pembayaran, kas, berita, laporan, dan pencabutan sesi.
 - Build lokal `lintRelease assembleRelease bundleRelease`: berhasil. Lint: 0 error, 13 warning. Rilis standar tidak memakai minifikasi.

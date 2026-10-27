@@ -7,7 +7,7 @@ rtsmartpro.amarlo.online {
     Strict-Transport-Security "max-age=31536000"
   }
   request_body {
-    max_size 128KB
+    max_size 4MB
   }
   reverse_proxy rtsmartpro-api:8000 {
     header_up X-Real-IP {remote_host}

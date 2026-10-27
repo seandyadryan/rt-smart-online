@@ -1,4 +1,7 @@
 import os
+import base64
+from io import BytesIO
+from PIL import Image
 from uuid import uuid4
 from datetime import date
 import pytest
@@ -12,7 +15,7 @@ def clean(monkeypatch):
     assert os.environ['DATABASE_URL'].split('/')[-1]=='rtsmartpro_test', 'Tests must use a separate test database'
     with db() as c:
         c.execute(open('schema.sql').read())
-        c.execute('TRUNCATE deletion_requests,audit_logs,reports,expenses,news,invoices,sessions,auth_limits,residents,communities CASCADE')
+        c.execute('TRUNCATE photos,deletion_requests,audit_logs,reports,expenses,news,invoices,sessions,auth_limits,residents,communities CASCADE')
     yield
 
 @pytest.fixture
@@ -107,3 +110,80 @@ def test_finance_expenses_authorized(actors):
     assert client.get('/api/v1/finance',headers=f['headers']).json()['expense']==0
     data['amount']=-1
     assert client.post('/api/v1/expenses',json=data,headers=a['headers']).status_code==422
+
+
+def sample_photo(format='JPEG'):
+    image=Image.new('RGB',(40,20),'green')
+    output=BytesIO()
+    if format=='JPEG':
+        exif=Image.Exif(); exif[274]=6; exif[270]='Private source metadata'
+        image.save(output,format=format,exif=exif)
+    else: image.save(output,format=format)
+    return base64.b64encode(output.getvalue()).decode()
+
+
+def test_news_photo_private_delivery_and_delete(actors):
+    a,r,f=actors
+    body={'title':'Foto kerja bakti','body':'Kegiatan kerja bakti di lingkungan RT.',
+          'category':'Kegiatan','photo_base64':sample_photo()}
+    assert client.post('/api/v1/news',json=body,headers=r['headers']).status_code==403
+    created=client.post('/api/v1/news',json=body,headers=a['headers'])
+    assert created.status_code==201
+    row=client.get('/api/v1/news',headers=r['headers']).json()[0]
+    assert row['photo_id'] and 'data' not in row and 'photo_base64' not in row
+    url='/api/v1/photos/'+row['photo_id']
+    assert client.get(url).status_code==401
+    assert client.get(url,headers=f['headers']).status_code==404
+    response=client.get(url,headers=r['headers'])
+    assert response.status_code==200 and response.headers['content-type']=='image/jpeg'
+    assert response.headers['cache-control']=='private, no-store'
+    with Image.open(BytesIO(response.content)) as image:
+        assert image.size==(20,40)  # EXIF orientation applied before metadata removal.
+        assert not image.getexif()
+    assert client.delete('/api/v1/news/'+row['id'],headers=a['headers']).status_code==200
+    assert client.get(url,headers=r['headers']).status_code==404
+
+
+def test_report_photo_only_owner_and_rt_admin(actors):
+    a,r,f=actors
+    other={'id':uuid4(),'community_id':a['community_id']}
+    with db() as c:
+        c.execute("INSERT INTO residents(id,community_id,name,address,role) VALUES(%s,%s,'Tetangga','B1','resident')",(other['id'],other['community_id']))
+    other_headers={'Authorization':'Bearer '+session_for(other)['token']}
+    result=client.post('/api/v1/reports',headers=r['headers'],json={
+        'title':'Foto lampu jalan','body':'Lampu jalan di depan rumah mati.',
+        'photo_base64':sample_photo('PNG')})
+    assert result.status_code==201
+    row=client.get('/api/v1/reports',headers=r['headers']).json()[0]
+    url='/api/v1/photos/'+row['photo_id']
+    assert client.get(url,headers=r['headers']).status_code==200
+    assert client.get(url,headers=a['headers']).status_code==200
+    assert client.get(url,headers=other_headers).status_code==404
+    assert client.get(url,headers=f['headers']).status_code==404
+    assert client.get('/api/v1/reports',headers=other_headers).json()==[]
+
+
+@pytest.mark.parametrize('value',['not base64',base64.b64encode(b'not an image').decode(),sample_photo('BMP')])
+def test_invalid_photo_does_not_create_post(actors,value):
+    a,r,f=actors
+    assert client.post('/api/v1/news',headers=a['headers'],json={
+        'title':'Berita gagal','body':'Foto tidak valid dalam berita.',
+        'category':'Informasi','photo_base64':value}).status_code==400
+    assert client.post('/api/v1/reports',headers=r['headers'],json={
+        'title':'Laporan gagal','body':'Foto tidak valid dalam laporan.',
+        'photo_base64':value}).status_code==400
+    assert client.get('/api/v1/news',headers=a['headers']).json()==[]
+    assert client.get('/api/v1/reports',headers=r['headers']).json()==[]
+
+
+def test_photo_optional_and_payload_limits(actors,monkeypatch):
+    from app import MAX_PHOTO_BASE64
+    a,r,f=actors
+    body={'title':'Laporan tanpa foto','body':'Laporan ini tetap sah tanpa lampiran.'}
+    assert client.post('/api/v1/reports',headers=r['headers'],json=body).status_code==201
+    assert client.get('/api/v1/reports',headers=r['headers']).json()[0]['photo_id'] is None
+    body['photo_base64']='A'*(MAX_PHOTO_BASE64+1)
+    assert client.post('/api/v1/reports',headers=r['headers'],json=body).status_code==422
+    body['photo_base64']=sample_photo()
+    monkeypatch.setattr(Image,'MAX_IMAGE_PIXELS',100)
+    assert client.post('/api/v1/reports',headers=r['headers'],json=body).status_code==400

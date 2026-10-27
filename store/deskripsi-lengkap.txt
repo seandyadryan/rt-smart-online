@@ -31,3 +31,6 @@ Dikembangkan oleh PT Deploy Dulu Pulang Nanti.
 Dukungan: seandyadryan2@gmail.com
 Kebijakan privasi: https://rtsmartpro.amarlo.online/privacy/
 Penghapusan akun: https://rtsmartpro.amarlo.online/delete-account/
+
+FOTO OPSIONAL
+Tambahkan foto pada kabar RT dan laporan lingkungan jika diperlukan. Pilih foto, periksa pratinjau, lalu kirim. Kabar dan laporan tetap dapat dikirim tanpa foto. Foto laporan hanya dapat dibuka oleh pelapor dan pengurus RT terkait.

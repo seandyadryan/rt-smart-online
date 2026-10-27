@@ -1,4 +1,7 @@
 import os, re, hashlib, hmac, secrets, base64
+import binascii, warnings
+from io import BytesIO
+from PIL import Image, ImageOps, UnidentifiedImageError
 from datetime import datetime, timezone, timedelta, date
 from uuid import UUID, uuid4
 from contextlib import asynccontextmanager
@@ -8,7 +11,7 @@ import psycopg
 from psycopg.rows import dict_row
 from psycopg.errors import UniqueViolation
 from fastapi import FastAPI, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -42,8 +45,49 @@ async def lifespan(app):
     with db() as c: c.execute(Path(__file__).with_name('schema.sql').read_text())
     yield
 
-app = FastAPI(title='RT Smart PRO', version='1.0.0', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title='RT Smart PRO', version='1.0.1', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 bearer = HTTPBearer(auto_error=False)
+MAX_PHOTO_BYTES = 2 * 1024 * 1024
+MAX_PHOTO_BASE64 = 4 * ((MAX_PHOTO_BYTES + 2) // 3)
+Image.MAX_IMAGE_PIXELS = 20_000_000
+
+
+def decode_photo(value):
+    if not value:
+        return None
+    try:
+        raw = base64.b64decode(value, validate=True)
+        if len(raw) > MAX_PHOTO_BYTES:
+            raise ValueError('Photo too large')
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', Image.DecompressionBombWarning)
+            with Image.open(BytesIO(raw)) as source:
+                if source.format not in ('JPEG', 'PNG', 'WEBP'):
+                    raise ValueError('Unsupported image')
+                source.load()
+                image = ImageOps.exif_transpose(source)
+                image.thumbnail((1600, 1600))
+                # Re-encode pixels only: filenames, EXIF/GPS and other source metadata are discarded.
+                pixels = Image.new('RGB', image.size, 'white')
+                if 'A' in image.getbands():
+                    rgba = image.convert('RGBA')
+                    pixels.paste(rgba, mask=rgba.getchannel('A'))
+                else:
+                    pixels.paste(image.convert('RGB'))
+                output = BytesIO()
+                pixels.save(output, format='JPEG', quality=85)
+                if output.tell() > MAX_PHOTO_BYTES:
+                    raise ValueError('Photo too large')
+                return output.getvalue()
+    except (ValueError, binascii.Error, OSError, UnidentifiedImageError,
+            Image.DecompressionBombWarning, Image.DecompressionBombError):
+        raise HTTPException(400, 'Foto tidak valid. Gunakan JPEG, PNG, atau WebP maksimal 2 MB.')
+
+
+def attach_photo(c, user, data, *, news_id=None, report_id=None):
+    if data is not None:
+        c.execute('INSERT INTO photos(id,community_id,news_id,report_id,data) VALUES(%s,%s,%s,%s,%s)',
+                  (uuid4(), user['community_id'], news_id, report_id, data))
 
 @app.exception_handler(UniqueViolation)
 async def duplicate(request, exc):
@@ -242,20 +286,27 @@ def review(iid:UUID,body:Review,user=Depends(admin)):
         audit(c,user,'payment.approve' if body.approve else 'payment.reject',iid)
     return {'message':'Status pembayaran diperbarui.'}
 
-class News(BaseModel):
+class PhotoPost(BaseModel):
+    photo_base64: str | None = Field(default=None, max_length=MAX_PHOTO_BASE64)
+
+
+class News(PhotoPost):
     title:str=Field(min_length=3,max_length=140)
     body:str=Field(min_length=10,max_length=10000)
     category:str=Field(pattern=r'^(Pengumuman|Kegiatan|Informasi)$')
 
 @app.get('/api/v1/news')
 def news(user=Depends(current)):
-    with db() as c: return c.execute('SELECT n.*,r.name AS author FROM news n JOIN residents r ON r.id=n.author_id WHERE n.community_id=%s ORDER BY n.created_at DESC LIMIT 200',(user['community_id'],)).fetchall()
+    with db() as c: return c.execute('SELECT n.*,r.name AS author,f.id AS photo_id FROM news n JOIN residents r ON r.id=n.author_id LEFT JOIN photos f ON f.news_id=n.id WHERE n.community_id=%s ORDER BY n.created_at DESC LIMIT 200',(user['community_id'],)).fetchall()
 
 @app.post('/api/v1/news',status_code=201)
 def publish(body:News,user=Depends(admin)):
+    if body.photo_base64: limit('photo-upload:'+str(user['id']),40)
+    photo = decode_photo(body.photo_base64)
     nid=uuid4()
     with db() as c:
         c.execute('INSERT INTO news(id,community_id,title,body,category,author_id) VALUES(%s,%s,%s,%s,%s,%s)',(nid,user['community_id'],body.title,body.body,body.category,user['id'])); audit(c,user,'news.publish',nid)
+        attach_photo(c, user, photo, news_id=nid)
     return {'id':nid}
 
 @app.delete('/api/v1/news/{nid}')
@@ -286,20 +337,36 @@ def expense(body:Expense,user=Depends(admin)):
         c.execute('INSERT INTO expenses VALUES(%s,%s,%s,%s,%s,%s)',(eid,user['community_id'],body.title,body.amount,body.date,user['id'])); audit(c,user,'expense.create',eid)
     return {'id':eid}
 
-class Report(BaseModel):
+class Report(PhotoPost):
     title:str=Field(min_length=3,max_length=140)
     body:str=Field(min_length=10,max_length=3000)
 
 @app.get('/api/v1/reports')
 def reports(user=Depends(current)):
-    with db() as c: return c.execute("SELECT p.*,r.name AS resident_name FROM reports p JOIN residents r ON r.id=p.resident_id WHERE p.community_id=%s AND (%s='admin' OR p.resident_id=%s) ORDER BY p.created_at DESC LIMIT 300",(user['community_id'],user['role'],user['id'])).fetchall()
+    with db() as c: return c.execute("SELECT p.*,r.name AS resident_name,f.id AS photo_id FROM reports p JOIN residents r ON r.id=p.resident_id LEFT JOIN photos f ON f.report_id=p.id WHERE p.community_id=%s AND (%s='admin' OR p.resident_id=%s) ORDER BY p.created_at DESC LIMIT 300",(user['community_id'],user['role'],user['id'])).fetchall()
 
 @app.post('/api/v1/reports',status_code=201)
 def report(body:Report,user=Depends(current)):
+    if body.photo_base64: limit('photo-upload:'+str(user['id']),40)
+    photo = decode_photo(body.photo_base64)
     rid=uuid4()
     with db() as c:
         c.execute('INSERT INTO reports(id,community_id,resident_id,title,body) VALUES(%s,%s,%s,%s,%s)',(rid,user['community_id'],user['id'],body.title,body.body)); audit(c,user,'report.create',rid)
+        attach_photo(c, user, photo, report_id=rid)
     return {'id':rid}
+
+
+@app.get('/api/v1/photos/{pid}')
+def photo(pid: UUID, user=Depends(current)):
+    with db() as c:
+        row = c.execute('''SELECT f.data FROM photos f LEFT JOIN reports p ON p.id=f.report_id
+            WHERE f.id=%s AND f.community_id=%s AND
+            (f.news_id IS NOT NULL OR %s='admin' OR p.resident_id=%s)''',
+            (pid, user['community_id'], user['role'], user['id'])).fetchone()
+    if not row:
+        raise HTTPException(404, 'Foto tidak ditemukan.')
+    return Response(bytes(row['data']), media_type='image/jpeg',
+                    headers={'Cache-Control':'private, no-store', 'X-Content-Type-Options':'nosniff'})
 
 @app.post('/api/v1/reports/{rid}/resolve')
 def resolve(rid:UUID,user=Depends(admin)):

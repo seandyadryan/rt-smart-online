@@ -42,3 +42,10 @@ CREATE TABLE IF NOT EXISTS deletion_requests (
 CREATE INDEX IF NOT EXISTS invoices_community ON invoices(community_id, resident_id);
 CREATE INDEX IF NOT EXISTS news_community ON news(community_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS reports_community ON reports(community_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS photos (
+ id uuid PRIMARY KEY, community_id uuid NOT NULL REFERENCES communities(id),
+ news_id uuid UNIQUE REFERENCES news(id) ON DELETE CASCADE,
+ report_id uuid UNIQUE REFERENCES reports(id) ON DELETE CASCADE,
+ data bytea NOT NULL CHECK(octet_length(data) <= 2097152),
+ CHECK ((news_id IS NOT NULL)::int + (report_id IS NOT NULL)::int = 1)
+);

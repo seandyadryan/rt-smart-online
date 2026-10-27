@@ -2,9 +2,12 @@ package com.deploydulupulangnanti.rtsmartpro
 
 import android.app.Application
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import android.util.LruCache
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.*
@@ -15,6 +18,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.ByteArrayOutputStream
+import java.util.UUID
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -48,7 +53,10 @@ class ApiError(val status: Int, override val message: String): Exception(message
 
 class AppModel(application: Application): AndroidViewModel(application) {
     private val vault = TokenVault(application)
-    private var token = vault.read()
+    @Volatile private var token = vault.read()
+    private val photos = object : LruCache<String, Bitmap>(16 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: Bitmap) = value.byteCount
+    }
     var me by mutableStateOf<JSONObject?>(null); private set
     var dashboard by mutableStateOf(JSONObject()); private set
     var invoices by mutableStateOf(emptyList<JSONObject>()); private set
@@ -103,6 +111,37 @@ class AppModel(application: Application): AndroidViewModel(application) {
             message = if (e is ApiError) e.message else "Koneksi belum tersedia. Periksa internet lalu coba lagi."
         }
     }
+    suspend fun photo(id: String): Bitmap = withContext(Dispatchers.IO) {
+        UUID.fromString(id)
+        val sessionToken = token
+        val cacheKey = "$sessionToken:$id"
+        photos.get(cacheKey)?.let { return@withContext it }
+        val connection = URL(BuildConfig.API_BASE_URL + "photos/$id").openConnection() as HttpURLConnection
+        try {
+            connection.connectTimeout = 15000; connection.readTimeout = 25000
+            connection.instanceFollowRedirects = false
+            connection.setRequestProperty("Authorization", "Bearer $sessionToken")
+            if (connection.responseCode != 200) throw ApiError(connection.responseCode,"Foto belum dapat dimuat.")
+            val output = ByteArrayOutputStream()
+            connection.inputStream.use { input ->
+                val buffer = ByteArray(8192)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    if (output.size() + count > 2 * 1024 * 1024) throw IllegalArgumentException("Foto terlalu besar.")
+                    output.write(buffer,0,count)
+                }
+            }
+            val bytes = output.toByteArray()
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeByteArray(bytes,0,bytes.size,bounds)
+            if (bounds.outWidth !in 1..1600 || bounds.outHeight !in 1..1600) throw IllegalArgumentException("Foto tidak valid.")
+            val bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.size) ?: throw IllegalArgumentException("Foto tidak valid.")
+            if (token != sessionToken) throw ApiError(401,"Sesi telah berubah.")
+            photos.put(cacheKey,bitmap)
+            bitmap
+        } finally { connection.disconnect() }
+    }
     fun refresh() { if (busy) return; viewModelScope.launch { busy = true; reload(); busy = false } }
     fun login(phone: String, code: String, otp: Boolean) {
         if (busy) return
@@ -138,7 +177,7 @@ class AppModel(application: Application): AndroidViewModel(application) {
             busy = false
         }
     }
-    private fun clear() { token = ""; vault.save(""); me = null; invoices = emptyList(); news = emptyList(); residents = emptyList(); reports = emptyList(); finance = JSONObject(); dashboard = JSONObject() }
+    private fun clear() { token = ""; vault.save(""); photos.evictAll(); me = null; invoices = emptyList(); news = emptyList(); residents = emptyList(); reports = emptyList(); finance = JSONObject(); dashboard = JSONObject() }
     fun logout() {
         viewModelScope.launch { busy = true; try { api("auth/logout", "POST", JSONObject()); clear() } catch (_:Exception) { message = "Gagal keluar dari server. Coba lagi saat terhubung." }; busy = false }
     }

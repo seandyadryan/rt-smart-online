@@ -4,7 +4,7 @@ Developer: **PT Deploy Dulu Pulang Nanti**
 
 Package: `com.deploydulupulangnanti.rtsmartpro`
 
-Versi awal: 1.0.0 (1)
+Versi rilis: 1.0.1 (2)
 
 Email dukungan: seandyadryan2@gmail.com
 
@@ -26,7 +26,7 @@ Sumber HTML kebijakan berada di `backend/public/privacy/index.html`.
 
 ## Pengisian Data safety dan akses peninjau
 
-Tinjau pilihan Play Console berdasarkan implementasi dan operasional saat rilis. Aplikasi mengirim nama, nomor HP, alamat rumah, ID akun, catatan IPL dan konfirmasi transfer, laporan warga, serta log aktivitas ke server untuk fungsi akun dan administrasi RT. Tidak ada SDK iklan atau analytics pihak ketiga. Aplikasi tidak meminta lokasi, kontak, kamera, mikrofon, akses SMS, atau advertising ID. Koneksi data menggunakan HTTPS. Permintaan penghapusan tersedia lewat aplikasi dan situs publik.
+Tinjau pilihan Play Console berdasarkan implementasi dan operasional saat rilis. Aplikasi mengirim nama, nomor HP, alamat rumah, ID akun, catatan IPL dan konfirmasi transfer, laporan warga, serta log aktivitas ke server untuk fungsi akun dan administrasi RT. Foto opsional pada kabar RT dan laporan dikirim ke server hanya ketika pengguna memilih serta mengirimnya. Deklarasikan foto sebagai data yang dikumpulkan untuk fungsi aplikasi, bersifat opsional. Photo Picker memberikan akses hanya ke foto yang dipilih dan aplikasi tidak meminta akses galeri secara menyeluruh. Tidak ada SDK iklan atau analytics pihak ketiga. Aplikasi tidak meminta lokasi, kontak, kamera, mikrofon, akses SMS, atau advertising ID. Koneksi data menggunakan HTTPS. Permintaan penghapusan tersedia lewat aplikasi dan situs publik.
 
 Jika Twilio Verify diaktifkan, nomor HP diproses penyedia OTP. Perbarui pernyataan Data safety sesuai konfigurasi akhirnya. Kolom bebas laporan dan referensi pembayaran dapat berisi informasi yang diketik pengguna; masukkan jenis data yang relevan pada deklarasi Anda.
 
