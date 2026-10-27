@@ -1,5 +1,6 @@
 import os, re, hashlib, hmac, secrets, base64
 import binascii, warnings
+import logging
 from io import BytesIO
 from PIL import Image, ImageOps, UnidentifiedImageError
 from datetime import datetime, timezone, timedelta, date
@@ -11,6 +12,7 @@ import psycopg
 from psycopg.rows import dict_row
 from psycopg.errors import UniqueViolation
 from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
@@ -45,7 +47,7 @@ async def lifespan(app):
     with db() as c: c.execute(Path(__file__).with_name('schema.sql').read_text())
     yield
 
-app = FastAPI(title='RT Smart PRO', version='1.0.1', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title='RT Smart PRO', version='1.0.2', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 bearer = HTTPBearer(auto_error=False)
 MAX_PHOTO_BYTES = 2 * 1024 * 1024
 MAX_PHOTO_BASE64 = 4 * ((MAX_PHOTO_BYTES + 2) // 3)
@@ -88,6 +90,43 @@ def attach_photo(c, user, data, *, news_id=None, report_id=None):
     if data is not None:
         c.execute('INSERT INTO photos(id,community_id,news_id,report_id,data) VALUES(%s,%s,%s,%s,%s)',
                   (uuid4(), user['community_id'], news_id, report_id, data))
+
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request, exc):
+    labels = {'title':'Judul', 'body':'Isi', 'category':'Kategori', 'name':'Nama', 'address':'Alamat',
+              'phone':'Nomor HP', 'code':'PIN atau kode OTP', 'current_pin':'PIN saat ini',
+              'new_pin':'PIN baru', 'period':'Periode', 'amount':'Nominal', 'due_date':'Jatuh tempo',
+              'date':'Tanggal', 'reference':'Referensi transfer', 'bank':'Nama bank',
+              'account':'Nomor rekening', 'holder':'Nama pemilik rekening', 'photo_base64':'Foto'}
+    labels['body'] = 'Isi kabar RT' if request.url.path == '/api/v1/news' else 'Isi laporan' if request.url.path == '/api/v1/reports' else 'Isi'
+    messages, errors = [], []
+    for error in exc.errors():
+        location = error.get('loc') or ('data',)
+        field = str(location[-1])
+        code = error.get('type', 'invalid')
+        context = error.get('ctx') or {}
+        label = labels.get(field, 'Data')
+        if field == 'photo_base64':
+            message = 'Foto terlalu besar. Ukuran foto yang dikirim maksimal 2 MB.' if code == 'string_too_long' else 'Foto tidak valid. Pilih ulang foto Anda.'
+        elif code == 'missing': message = f'{label} wajib diisi.'
+        elif code == 'string_too_short': message = f'{label} minimal {context.get("min_length")} karakter.'
+        elif code == 'string_too_long': message = f'{label} maksimal {context.get("max_length")} karakter.'
+        elif field == 'category': message = 'Pilih kategori Pengumuman, Kegiatan, atau Informasi.'
+        elif field == 'phone': message = 'Gunakan nomor HP Indonesia yang valid, contoh 08xxxxxxxxxx.'
+        elif field in ('code','current_pin','new_pin'): message = f'{label} harus berupa 6 digit angka.'
+        elif field == 'period': message = 'Periode harus berupa YYYY-MM, contoh 2026-10.'
+        elif field in ('date','due_date'): message = f'{label} harus berupa YYYY-MM-DD.'
+        elif field == 'amount': message = 'Nominal harus berupa angka lebih dari 0 dan maksimal Rp100.000.000.'
+        elif code == 'json_invalid': message = 'Format data belum dapat dibaca. Silakan coba lagi.'
+        else: message = f'Periksa {label.lower()}. Formatnya belum sesuai.'
+        messages.append(message)
+        errors.append({'field':field, 'code':code})
+    # Do not return or log rejected values: they may contain PINs, photos or report details.
+    route = getattr(request.scope.get('route'), 'path', '/unknown')
+    logging.getLogger('uvicorn.error').warning('Validation rejected: route=%s fields=%s', route,
+                                             ','.join(f'{item["field"]}:{item["code"]}' for item in errors))
+    return JSONResponse(status_code=422, content={'detail':'\n'.join(dict.fromkeys(messages)), 'errors':errors})
 
 @app.exception_handler(UniqueViolation)
 async def duplicate(request, exc):
@@ -289,11 +328,24 @@ def review(iid:UUID,body:Review,user=Depends(admin)):
 class PhotoPost(BaseModel):
     photo_base64: str | None = Field(default=None, max_length=MAX_PHOTO_BASE64)
 
+    @field_validator('title', 'body', mode='before', check_fields=False)
+    @classmethod
+    def trim_text(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
 
 class News(PhotoPost):
     title:str=Field(min_length=3,max_length=140)
     body:str=Field(min_length=10,max_length=10000)
     category:str=Field(pattern=r'^(Pengumuman|Kegiatan|Informasi)$')
+
+    @field_validator('category', mode='before')
+    @classmethod
+    def normalize_category(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            return {item.casefold():item for item in ('Pengumuman','Kegiatan','Informasi')}.get(value.casefold(), value)
+        return value
 
 @app.get('/api/v1/news')
 def news(user=Depends(current)):

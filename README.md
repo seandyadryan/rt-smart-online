@@ -11,6 +11,7 @@ Aplikasi Android Kotlin native/Jetpack Compose dengan API Python FastAPI dan Pos
 - Tagihan IPL per periode, konfirmasi transfer manual, persetujuan/penolakan pengurus, dan riwayat status. Pembuatan periode yang sama tidak menggandakan tagihan.
 - Berita/pengumuman RT, ringkasan kas dari pembayaran terverifikasi, pencatatan pengeluaran, laporan warga dan status tindak lanjut.
 - Satu foto opsional pada kabar RT dan laporan lingkungan, dengan pratinjau, ganti/hapus sebelum dikirim, serta tampilan foto yang dapat diperbesar. Tanpa foto tetap dapat diterbitkan. Photo Picker hanya memberikan akses ke gambar yang dipilih pengguna.
+- Pesan validasi menyebut kolom yang harus diperbaiki. Kabar RT membutuhkan judul minimal 3 karakter, isi minimal 10 karakter, dan kategori Pengumuman/Kegiatan/Informasi. Huruf besar/kecil serta spasi di sekitar kategori dinormalisasi. Detail error tetap berupa teks agar langsung terbaca oleh APK yang sudah terpasang; nilai isian tidak dikembalikan atau dicatat dalam log validasi.
 - Isolasi data antar-RT di API, audit aktivitas, pembatasan percobaan login di PostgreSQL, pencabutan sesi saat logout.
 - Layout ponsel/tablet/layar lebar, UI bahasa Indonesia, halaman kebijakan privasi serta pengajuan penghapusan akun.
 

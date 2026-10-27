@@ -1,4 +1,12 @@
-# Pemeriksaan rilis 1.0.1 (2) — foto opsional
+# Perbaikan validasi API 1.0.2 — APK tetap 1.0.1
+
+- Pemeriksaan PostgreSQL produksi mengonfirmasi tabel `photos` sudah tersedia. Tidak diperlukan perubahan skema atau pembaruan database manual untuk perbaikan ini.
+- Log produksi menunjukkan penolakan validasi HTTP 422 pada pengiriman kabar RT. Log lama tidak menyimpan detail kolom atau nilai yang ditolak, sehingga penyebab kolom spesifik pada percobaan lama tidak dapat dipastikan.
+- Respons validasi kini mengirim teks Indonesia yang menyebut kolom dan batasannya. Kompatibel dengan penanganan error APK yang sudah terpasang. Log hanya berisi nama kolom dan jenis validasi, tanpa PIN, isi laporan, maupun gambar.
+- Kategori kabar RT dinormalisasi untuk variasi huruf besar/kecil dan spasi. Judul serta isi dibersihkan dari spasi di tepi; batas minimal judul 3 karakter dan isi 10 karakter tetap berlaku. Foto tetap opsional.
+- 17 pengujian backend kandidat lulus. Uji HTTPS produksi membuktikan respons validasi terbaca, publikasi tanpa foto berhasil, dan upload foto tetap berfungsi. Seluruh data uji sementara dibersihkan. Kode Android tidak berubah sehingga tidak memerlukan APK baru.
+
+## Pemeriksaan rilis 1.0.1 (2) — foto opsional
 
 - Foto opsional tersedia pada form kabar RT dan laporan lingkungan. Pengguna dapat memilih, melihat pratinjau, mengganti, menghapus sebelum kirim, dan memperbesar foto yang telah dimuat. Form tetap dapat dikirim tanpa foto; kesalahan pengiriman mempertahankan isi form.
 - Backend kandidat: 14 pengujian integrasi lulus pada database terpisah. Mencakup publikasi tanpa foto, validasi ukuran/format, normalisasi orientasi dan pembuangan EXIF, akses lintas RT, pembatasan foto laporan bagi pelapor/pengurus, serta penghapusan foto saat berita dihapus.

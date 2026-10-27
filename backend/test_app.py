@@ -187,3 +187,35 @@ def test_photo_optional_and_payload_limits(actors,monkeypatch):
     body['photo_base64']=sample_photo()
     monkeypatch.setattr(Image,'MAX_IMAGE_PIXELS',100)
     assert client.post('/api/v1/reports',headers=r['headers'],json=body).status_code==400
+
+
+def test_news_validation_explains_fields_without_echoing_values(actors,caplog):
+    a,_,_=actors
+    response=client.post('/api/v1/news',headers=a['headers'],json={
+        'title':'AB','body':'PRIVATE','category':'PRIVATE CATEGORY'})
+    assert response.status_code==422
+    result=response.json()
+    assert isinstance(result['detail'],str)  # Compatible with existing Android releases.
+    assert 'Judul minimal 3 karakter.' in result['detail']
+    assert 'Isi kabar RT minimal 10 karakter.' in result['detail']
+    assert 'Pilih kategori Pengumuman, Kegiatan, atau Informasi.' in result['detail']
+    assert {item['field'] for item in result['errors']}=={'title','body','category'}
+    assert 'PRIVATE' not in response.text and 'PRIVATE' not in caplog.text
+    assert 'body:string_too_short' in caplog.text
+
+
+def test_report_validation_explains_body_length(actors):
+    _,r,_=actors
+    response=client.post('/api/v1/reports',headers=r['headers'],json={'title':'Lampu','body':'Mati'})
+    assert response.status_code==422
+    assert response.json()['detail']=='Isi laporan minimal 10 karakter.'
+
+
+def test_news_normalizes_category_and_trims_text(actors):
+    a,_,_=actors
+    response=client.post('/api/v1/news',headers=a['headers'],json={
+        'title':'  Jadwal ronda  ','body':'  Jadwal ronda malam untuk minggu ini.  ','category':' pengumuman '})
+    assert response.status_code==201
+    row=client.get('/api/v1/news',headers=a['headers']).json()[0]
+    assert row['title']=='Jadwal ronda' and row['body']=='Jadwal ronda malam untuk minggu ini.'
+    assert row['category']=='Pengumuman' and row['photo_id'] is None
