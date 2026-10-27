@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-10-26T08:26:24.101Z",
+  "source": "Actual native Android screenshots captured from the running app; sample residents are labelled.",
+  "assets": [
+    {
+      "file": "phone/1-home.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 233941
+    },
+    {
+      "file": "phone/2-ipl.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 236465
+    },
+    {
+      "file": "phone/3-news.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 268323
+    },
+    {
+      "file": "phone/4-finance.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 235298
+    },
+    {
+      "file": "phone/5-residents.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 216491
+    },
+    {
+      "file": "tablet-7/1-home.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 208482
+    },
+    {
+      "file": "tablet-7/2-ipl.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 186939
+    },
+    {
+      "file": "tablet-7/3-news.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 245913
+    },
+    {
+      "file": "tablet-7/4-finance.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 185465
+    },
+    {
+      "file": "tablet-10/1-home.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 254689
+    },
+    {
+      "file": "tablet-10/2-ipl.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 218884
+    },
+    {
+      "file": "tablet-10/3-news.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 249995
+    },
+    {
+      "file": "tablet-10/4-finance.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 204411
+    },
+    {
+      "file": "desktop/1-home.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 222000
+    },
+    {
+      "file": "desktop/2-ipl.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 196002
+    },
+    {
+      "file": "desktop/3-news.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 208642
+    },
+    {
+      "file": "desktop/4-finance.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 177299
+    }
+  ]
+}

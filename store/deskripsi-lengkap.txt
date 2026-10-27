@@ -1,0 +1,33 @@
+RT Smart PRO IPL & News membantu pengurus dan warga mengurus lingkungan dengan lebih tertib. Dari tagihan iuran sampai pengumuman RT, semua tersimpan dalam satu aplikasi Android.
+
+IURAN LINGKUNGAN LEBIH TERATUR
+Lihat tagihan IPL, jumlah yang perlu dibayar, jatuh tempo, dan riwayat status pembayaran. Setelah transfer melalui bank Anda, kirim referensi pembayaran di aplikasi. Pengurus akan memeriksa mutasi rekening sebelum menyatakan tagihan lunas.
+
+KABAR RESMI DARI RT
+Temukan pengumuman, informasi, dan kegiatan yang diterbitkan pengurus. Baca kabar lingkungan tanpa harus mencari pesan lama di grup percakapan.
+
+KAS TERBUKA UNTUK WARGA
+Pantau total pemasukan dari IPL yang sudah diverifikasi, pengeluaran tercatat, dan saldo kas lingkungan. Rincian pengeluaran membantu warga memahami penggunaan iuran bersama.
+
+LAPORAN YANG BISA DIPANTAU
+Sampaikan masalah atau kebutuhan lingkungan kepada pengurus melalui laporan. Lihat status tindak lanjutnya langsung dari aplikasi.
+
+RUANG KERJA PENGURUS
+Pengurus dapat menambahkan warga, menerbitkan tagihan, memeriksa konfirmasi pembayaran, mengatur rekening IPL, mencatat pengeluaran, menerbitkan berita, serta menandai laporan yang telah diselesaikan. Hak akses pengurus diperiksa oleh server.
+
+AKUN BERDASARKAN NOMOR HP
+Nomor HP warga didaftarkan oleh pengurus RT. Masuk menggunakan nomor HP dan PIN pribadi yang diberikan pengurus, lalu ganti PIN Anda melalui menu akun. Pilihan OTP SMS tersedia apabila operator telah mengaktifkan layanan pengiriman OTP.
+
+NYAMAN DI PONSEL DAN TABLET
+Tampilan berbahasa Indonesia dengan ukuran teks yang jelas, warna yang tenang, dan tata letak yang menyesuaikan layar.
+
+PERLU DIKETAHUI
+• Koneksi internet diperlukan untuk mengakses data terbaru.
+• Pendaftaran warga dilakukan oleh pengurus RT; aplikasi tidak menyediakan pendaftaran warga secara bebas.
+• Aplikasi mencatat dan membantu verifikasi pembayaran IPL. Transfer dana dilakukan melalui bank, bukan melalui pemotongan saldo di aplikasi.
+• Data dan rekening pembayaran dikelola oleh pengurus lingkungan masing-masing.
+
+Dikembangkan oleh PT Deploy Dulu Pulang Nanti.
+Dukungan: seandyadryan2@gmail.com
+Kebijakan privasi: https://rtsmartpro.amarlo.online/privacy/
+Penghapusan akun: https://rtsmartpro.amarlo.online/delete-account/

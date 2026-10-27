@@ -1,0 +1,1 @@
+{"name":"rtsmartpro-release-tools","private":true,"type":"module","scripts":{"assets":"node assets.mjs"},"dependencies":{"ffmpeg-static":"5.3.0","sharp":"^0.35.5"}}

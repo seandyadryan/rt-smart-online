@@ -1,0 +1,6 @@
+[Unit]
+Description=RT Smart PRO PostgreSQL backup
+[Service]
+Type=oneshot
+User=ubuntu
+ExecStart=/bin/bash /opt/rtsmartpro/deploy/backup.sh

@@ -1,0 +1,18 @@
+name: Backend • deploy manual
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: production-backend
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: [self-hosted, Linux, ARM64, rtsmartpro]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy and verify PostgreSQL API
+        run: bash deploy/update.sh
+      - name: Integration tests on isolated database
+        run: bash /opt/rtsmartpro/deploy/test.sh
