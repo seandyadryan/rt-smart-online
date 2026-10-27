@@ -34,3 +34,6 @@ Penghapusan akun: https://rtsmartpro.amarlo.online/delete-account/
 
 FOTO OPSIONAL
 Tambahkan foto pada kabar RT dan laporan lingkungan jika diperlukan. Pilih foto, periksa pratinjau, lalu kirim. Kabar dan laporan tetap dapat dikirim tanpa foto. Foto laporan hanya dapat dibuka oleh pelapor dan pengurus RT terkait.
+
+KELOLA DATA WARGA
+Pengurus dapat mengedit nama, nomor HP, dan alamat warga. Warga yang pindah dapat dihapus dari daftar aktif sehingga akses akun dicabut. Riwayat IPL tetap tersimpan untuk pertanggungjawaban kas.

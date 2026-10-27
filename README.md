@@ -8,6 +8,7 @@ Aplikasi Android Kotlin native/Jetpack Compose dengan API Python FastAPI dan Pos
 
 - Login nomor HP Indonesia + PIN 6 digit, penyimpanan sesi lewat Android Keystore, opsi Twilio Verify OTP setelah konfigurasi.
 - Hanya pengurus RT dapat mendaftarkan warga dan membuat PIN awal. Warga dapat mengganti PIN. Reset PIN mencabut sesi lama.
+- Pengurus dapat mengedit nama, nomor HP, dan alamat warga melalui Data warga. Perubahan nomor HP membuat PIN baru dan mencabut sesi lama. Hapus warga mengeluarkannya dari daftar aktif, mengosongkan nomor HP/PIN, serta mencabut sesi; riwayat IPL dan kas dipertahankan. Nomor HP dapat digunakan kembali untuk pendaftaran baru dengan akun terpisah. Akun pengurus dilindungi dari edit/hapus melalui menu warga.
 - Tagihan IPL per periode, konfirmasi transfer manual, persetujuan/penolakan pengurus, dan riwayat status. Pembuatan periode yang sama tidak menggandakan tagihan.
 - Berita/pengumuman RT, ringkasan kas dari pembayaran terverifikasi, pencatatan pengeluaran, laporan warga dan status tindak lanjut.
 - Satu foto opsional pada kabar RT dan laporan lingkungan, dengan pratinjau, ganti/hapus sebelum dikirim, serta tampilan foto yang dapat diperbesar. Tanpa foto tetap dapat diterbitkan. Photo Picker hanya memberikan akses ke gambar yang dipilih pengguna.

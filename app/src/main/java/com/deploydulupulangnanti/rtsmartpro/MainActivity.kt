@@ -74,7 +74,7 @@ private fun Brand(compact: Boolean = false) {
 
 private data class Destination(val title: String, val icon: ImageVector)
 private val destinations = listOf(Destination("Beranda", AppIcons.Home), Destination("IPL", AppIcons.ReceiptLong), Destination("Kabar RT", AppIcons.Newspaper), Destination("Kas", AppIcons.AccountBalanceWallet), Destination("Lainnya", AppIcons.GridView))
-private data class Field(val key: String, val label: String, val value: String = "", val numeric: Boolean = false, val multiline: Boolean = false)
+private data class Field(val key: String, val label: String, val value: String = "", val numeric: Boolean = false, val multiline: Boolean = false, val required: Boolean = true)
 private data class Form(val title: String, val subtitle: String, val fields: List<Field>, val button: String = "Simpan", val photo: Boolean = false, val submit: (Map<String,String>, () -> Unit) -> Unit)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -256,11 +256,44 @@ private fun reportForm(vm: AppModel) = Form("Sampaikan laporan","Laporkan kebutu
 }
 @Composable private fun MenuRow(icon: ImageVector,title: String,body: String,click: () -> Unit) { Row(Modifier.fillMaxWidth().clickable(onClick = click).padding(vertical = 8.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(13.dp)) { Box(Modifier.size(45.dp).clip(RoundedCornerShape(13.dp)).background(Pale),contentAlignment = Alignment.Center) { Icon(icon,title,tint = Pine) }; Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(4.dp)) { Text(title,fontSize = 14.sp,fontWeight = FontWeight.Medium); Text(body,fontSize = 11.sp,color = Muted) }; Icon(AppIcons.ChevronRight,null,tint = Muted,modifier = Modifier.size(18.dp)) } }
 
-@Composable private fun Residents(vm: AppModel,back: () -> Unit,show: (Form) -> Unit) { LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(22.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
+private fun residentEditForm(vm: AppModel,r: JSONObject) = Form(
+    "Edit warga",
+    "Perbarui nama, nomor HP, dan alamat. Jika nomor HP berubah, PIN baru dibuat dan sesi lama dicabut." + if (r.optBoolean("demo")) " Nomor HP boleh kosong untuk data contoh. Isi nomor HP untuk membuat akun login warga." else "",
+    listOf(Field("name","Nama lengkap",r.s("name")),Field("phone",if (r.optBoolean("demo")) "Nomor HP (opsional untuk contoh)" else "Nomor HP",r.s("phone"),numeric = true,required = !r.optBoolean("demo")),Field("address","Alamat rumah",r.s("address"))),
+    "Simpan perubahan"
+) { v,done -> vm.mutate("residents/${r.s("id")}",JSONObject(v),"PUT",after = done) }
+
+@Composable private fun Residents(vm: AppModel,back: () -> Unit,show: (Form) -> Unit) {
+    var removing by remember { mutableStateOf<JSONObject?>(null) }
+    LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(22.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
     item { TextButton(onClick = back) { Icon(AppIcons.ArrowBack,null); Text("Kembali") }; Headline("Tetangga kita."); Text("${vm.residents.size} warga • Dikelola oleh pengurus RT",color = Muted,fontSize = 12.sp) }
     item { Button(onClick = { show(Form("Tambah warga","Warga hanya dapat didaftarkan oleh pengurus. PIN awal dibuat otomatis dan ditampilkan sekali.",listOf(Field("name","Nama lengkap"),Field("phone","Nomor HP",numeric = true),Field("address","Alamat rumah")),"Tambahkan warga") { v,done -> vm.mutate("residents",JSONObject(v),after = done) }) },modifier = Modifier.fillMaxWidth()) { Icon(AppIcons.PersonAdd,null); Text("Tambah warga",Modifier.padding(start = 8.dp)) } }
-    items(vm.residents,key = { it.s("id") }) { r -> Paper { Text(r.s("name"),fontWeight = FontWeight.SemiBold); Text(r.s("address"),fontSize = 12.sp,color = Muted); if (r.s("phone").isNotBlank()) Text(r.s("phone"),fontSize = 12.sp,color = Muted); if (r.optBoolean("demo")) Badge("Data contoh • Tidak bisa login"); if (r.s("role") == "admin") Badge("Pengurus RT"); if (r.s("role") == "resident" && !r.optBoolean("demo")) TextButton(onClick = { show(Form("Reset PIN warga","PIN baru akan membatalkan semua sesi warga ini. Sampaikan PIN baru secara pribadi.",emptyList(),"Reset PIN" ) { _,done -> vm.mutate("residents/${r.s("id")}/reset-pin",after = done) }) }) { Text("Reset PIN") } } }
-} }
+    items(vm.residents,key = { it.s("id") }) { r -> Paper {
+        Text(r.s("name"),fontWeight = FontWeight.SemiBold)
+        Text(r.s("address"),fontSize = 12.sp,color = Muted)
+        if (r.s("phone").isNotBlank()) Text(r.s("phone"),fontSize = 12.sp,color = Muted)
+        if (r.optBoolean("demo")) Badge("Data contoh • Tidak bisa login")
+        if (r.s("role") == "admin") Badge("Pengurus RT")
+        if (r.s("role") == "resident") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { show(residentEditForm(vm,r)) },enabled = !vm.busy) { Icon(AppIcons.Edit,null,Modifier.size(17.dp)); Text("Edit",Modifier.padding(start = 6.dp)) }
+                TextButton(onClick = { removing = r },enabled = !vm.busy,colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text("Hapus") }
+            }
+            if (!r.optBoolean("demo")) TextButton(onClick = { show(Form("Reset PIN warga","PIN baru akan membatalkan semua sesi warga ini. Sampaikan PIN baru secara pribadi.",emptyList(),"Reset PIN" ) { _,done -> vm.mutate("residents/${r.s("id")}/reset-pin",after = done) }) },enabled = !vm.busy) { Text("Reset PIN") }
+        }
+    } }
+    }
+    removing?.let { r -> AlertDialog(
+        onDismissRequest = { if (!vm.busy) removing = null },
+        title = { Text("Hapus warga?",fontFamily = FontFamily.Serif) },
+        text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("${r.s("name")} akan dihapus dari daftar warga aktif dan tidak dapat masuk lagi. Riwayat tagihan serta pembayaran IPL tetap disimpan untuk pertanggungjawaban kas.")
+            vm.message?.let { Text(it,color = MaterialTheme.colorScheme.error,fontSize = 12.sp) }
+        } },
+        confirmButton = { Button(onClick = { vm.mutate("residents/${r.s("id")}",method = "DELETE",after = { removing = null }) },enabled = !vm.busy,colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Hapus warga") } },
+        dismissButton = { TextButton(onClick = { removing = null },enabled = !vm.busy) { Text("Batal") } }
+    ) }
+}
 @Composable private fun Reports(vm: AppModel,back: () -> Unit,create: () -> Unit) { LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(22.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
     item { TextButton(onClick = back) { Icon(AppIcons.ArrowBack,null); Text("Kembali") }; Headline("Didengar.\nDitindaklanjuti.") }
     item { Button(onClick = create,modifier = Modifier.fillMaxWidth()) { Icon(AppIcons.Add,null); Text("Buat laporan",Modifier.padding(start = 8.dp)) } }
@@ -283,5 +316,5 @@ private fun reportForm(vm: AppModel) = Form("Sampaikan laporan","Laporkan kebutu
             }
             vm.message?.let { Text(it,color = MaterialTheme.colorScheme.error,fontSize = 12.sp) }
         }
-    },confirmButton = { Button(onClick = { form.submit(values.toMap(),dismiss) },enabled = !busy && !preparingPhoto && form.fields.all { !values[it.key].isNullOrBlank() }) { Text(form.button) } },dismissButton = { TextButton(onClick = dismiss,enabled = !busy && !preparingPhoto) { Text("Batal") } })
+    },confirmButton = { Button(onClick = { form.submit(values.toMap(),dismiss) },enabled = !busy && !preparingPhoto && form.fields.all { !it.required || !values[it.key].isNullOrBlank() }) { Text(form.button) } },dismissButton = { TextButton(onClick = dismiss,enabled = !busy && !preparingPhoto) { Text("Batal") } })
 }

@@ -47,7 +47,7 @@ async def lifespan(app):
     with db() as c: c.execute(Path(__file__).with_name('schema.sql').read_text())
     yield
 
-app = FastAPI(title='RT Smart PRO', version='1.0.2', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title='RT Smart PRO', version='1.0.3', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 bearer = HTTPBearer(auto_error=False)
 MAX_PHOTO_BYTES = 2 * 1024 * 1024
 MAX_PHOTO_BASE64 = 4 * ((MAX_PHOTO_BYTES + 2) // 3)
@@ -256,6 +256,55 @@ def add_resident(body:Resident,user=Depends(admin)):
         c.execute('INSERT INTO residents(id,community_id,name,phone,address,role,pin_hash) VALUES(%s,%s,%s,%s,%s,%s,%s)',(rid,user['community_id'],body.name,body.phone,body.address,'resident',pin_hash(pin)))
         audit(c,user,'resident.create',rid)
     return {'id':rid,'initial_pin':pin,'message':'Sampaikan PIN ini secara pribadi. Warga dapat menggantinya setelah masuk.'}
+
+
+class ResidentUpdate(BaseModel):
+    name:str=Field(min_length=2,max_length=100)
+    address:str=Field(min_length=2,max_length=200)
+    phone:str|None=Field(default=None,max_length=24)
+
+    @field_validator('name','address',mode='before')
+    @classmethod
+    def trim_text(cls,value):
+        return value.strip() if isinstance(value,str) else value
+
+    @field_validator('phone')
+    @classmethod
+    def valid_phone(cls,value):
+        return normalize_phone(value) if value and value.strip() else None
+
+
+@app.put('/api/v1/residents/{rid}')
+def edit_resident(rid:UUID,body:ResidentUpdate,user=Depends(admin)):
+    initial_pin=None
+    with db() as c:
+        row=c.execute("SELECT * FROM residents WHERE id=%s AND community_id=%s AND role='resident' FOR UPDATE",(rid,user['community_id'])).fetchone()
+        if not row or not row['active']: raise HTTPException(404,'Warga tidak ditemukan.')
+        if not row['demo'] and not body.phone: raise HTTPException(422,'Nomor HP wajib diisi untuk akun warga.')
+        credentials_changed=body.phone!=row['phone'] or bool(body.phone and not row['pin_hash'])
+        encoded=row['pin_hash']
+        if credentials_changed and body.phone:
+            initial_pin=''.join(secrets.choice('0123456789') for _ in range(6))
+            encoded=pin_hash(initial_pin)
+        c.execute('UPDATE residents SET name=%s,address=%s,phone=%s,pin_hash=%s,demo=%s WHERE id=%s',
+                  (body.name,body.address,body.phone,encoded,row['demo'] and not body.phone,rid))
+        if credentials_changed: c.execute('DELETE FROM sessions WHERE resident_id=%s',(rid,))
+        audit(c,user,'resident.update',rid)
+    result={'message':'Data warga berhasil diperbarui.'}
+    if initial_pin: result['initial_pin']=initial_pin
+    return result
+
+
+@app.delete('/api/v1/residents/{rid}')
+def remove_resident(rid:UUID,user=Depends(admin)):
+    with db() as c:
+        row=c.execute("SELECT active FROM residents WHERE id=%s AND community_id=%s AND role='resident' FOR UPDATE",(rid,user['community_id'])).fetchone()
+        if not row: raise HTTPException(404,'Warga tidak ditemukan.')
+        if row['active']:
+            c.execute('UPDATE residents SET active=false,phone=NULL,pin_hash=NULL WHERE id=%s',(rid,))
+            c.execute('DELETE FROM sessions WHERE resident_id=%s',(rid,))
+            audit(c,user,'resident.remove',rid)
+    return {'message':'Warga dihapus dari daftar aktif dan akses akunnya dicabut. Riwayat IPL tetap disimpan untuk pertanggungjawaban kas.'}
 
 @app.post('/api/v1/residents/{rid}/reset-pin')
 def reset_pin(rid:UUID,user=Depends(admin)):

@@ -4,7 +4,7 @@ Developer: **PT Deploy Dulu Pulang Nanti**
 
 Package: `com.deploydulupulangnanti.rtsmartpro`
 
-Versi rilis: 1.0.1 (2)
+Versi rilis: 1.0.2 (3)
 
 Email dukungan: seandyadryan2@gmail.com
 

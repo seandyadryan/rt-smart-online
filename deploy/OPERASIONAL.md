@@ -27,6 +27,10 @@ PIN awal acak hanya tampil sekali. Sampaikan secara privat kepada pengurus, lalu
 
 ## Data contoh dan permintaan penghapusan
 
+Di **Lainnya → Data warga**, pilih **Edit** untuk memperbarui nama, nomor HP, dan alamat. Nomor HP yang berubah menghasilkan PIN baru sekali tampil dan mencabut sesi lama. Data contoh boleh diedit tanpa nomor HP; mengisi nomor HP mengubahnya menjadi akun warga dan menghasilkan PIN awal.
+
+Pilih **Hapus**, lalu konfirmasi, untuk mengeluarkan warga dari daftar aktif. Akses login dicabut dan warga tidak lagi mendapat tagihan periode baru. Tagihan, pembayaran lama, dan kas tetap tersimpan. Nomor HP dilepas agar dapat didaftarkan kembali; akun baru tidak memperoleh riwayat akun sebelumnya. Penghapusan ini bukan prosedur penghapusan seluruh data pribadi; permintaan privasi tetap diproses sesuai kebijakan.
+
 Data awal bertanda **Contoh** adalah simulasi. Selesaikan pengujian sebelum memakai kas untuk pencatatan operasional. Jangan memperlakukan pembayaran simulasi sebagai penerimaan bank.
 
 Permintaan penghapusan akun masuk ke tabel `deletion_requests` untuk diproses operator sesuai kebijakan privasi. Penghapusan dan anonimisasi data keuangan dilakukan dengan pemeriksaan manual serta cadangan terlebih dahulu. Pantau email dukungan dan permintaan akun secara berkala.

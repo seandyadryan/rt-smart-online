@@ -1,4 +1,14 @@
-# Perbaikan validasi API 1.0.2 — APK tetap 1.0.1
+# Rilis Android 1.0.2 (3) — edit dan hapus warga
+
+- Pengurus RT dapat mengedit nama, nomor HP, dan alamat warga dari Data warga. Akun pengurus dilindungi dari edit/hapus melalui endpoint warga. Perubahan nomor HP menghasilkan PIN baru sekali tampil dan mencabut sesi lama; edit nama/alamat mempertahankan PIN dan sesi.
+- Hapus warga memerlukan konfirmasi UI, menonaktifkan akun, mengosongkan nomor HP/hash PIN, dan mencabut sesi. Daftar aktif serta tagihan periode baru tidak lagi memasukkan warga tersebut. Pembayaran dan riwayat IPL lama tetap tersimpan, sehingga saldo kas tidak berubah. Nomor HP yang didaftarkan kembali menghasilkan akun baru tanpa riwayat akun lama.
+- Data contoh dapat diedit tanpa nomor HP. Mengisi nomor HP mengubahnya menjadi akun warga dengan PIN awal. Nomor HP warga nyata wajib tetap diisi dan tidak boleh sama dengan akun lain.
+- 25 pengujian backend kandidat lulus, termasuk otorisasi, isolasi RT, rollback saat nomor bentrok, penggantian PIN/sesi, konversi data contoh, dan pemeliharaan kas setelah warga dihapus.
+- Uji HTTPS produksi dengan RT sementara: edit nama/alamat, perubahan HP dan login PIN baru, pencabutan sesi, hapus warga, riwayat IPL lunas, pengecualian tagihan baru, serta penggunaan ulang nomor HP berhasil. Seluruh data RT uji sudah dibersihkan.
+- `lintRelease assembleRelease bundleRelease :app:compileDebugAndroidTestKotlin` berhasil; lint 0 error. APK bertanda tangan dengan sertifikat yang sama dan lolos pemeriksaan alignment 16 KB. Interaksi tombol UI baru belum diuji manual pada perangkat; kontrak API diuji dan kode native dikompilasi.
+- API produksi 1.0.3 sudah diterapkan. Skema yang ada mendukung perubahan ini tanpa migrasi tambahan. Kebijakan privasi diperbarui untuk membedakan hapus dari daftar aktif dengan permintaan penghapusan data pribadi.
+
+## Perbaikan validasi API 1.0.2 — APK tetap 1.0.1
 
 - Pemeriksaan PostgreSQL produksi mengonfirmasi tabel `photos` sudah tersedia. Tidak diperlukan perubahan skema atau pembaruan database manual untuk perbaikan ini.
 - Log produksi menunjukkan penolakan validasi HTTP 422 pada pengiriman kabar RT. Log lama tidak menyimpan detail kolom atau nilai yang ditolak, sehingga penyebab kolom spesifik pada percobaan lama tidak dapat dipastikan.
