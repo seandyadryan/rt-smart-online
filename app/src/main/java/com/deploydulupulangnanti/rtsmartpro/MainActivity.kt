@@ -158,7 +158,14 @@ private fun LoginScreen(vm: AppModel) {
             Button(onClick = { if (otp && !sent) vm.requestOtp(phone) { sent = true } else vm.login(phone,code,otp) },enabled = !vm.busy && phone.length >= 10 && (otp && !sent || code.length == 6),modifier = Modifier.fillMaxWidth().height(54.dp),shape = RoundedCornerShape(14.dp)) { if (vm.busy) CircularProgressIndicator(Modifier.size(20.dp),color = Color.White,strokeWidth = 2.dp) else Text(if (otp && !sent) "Kirim kode OTP" else "Masuk ke lingkungan Anda",fontWeight = FontWeight.SemiBold) }
             if (vm.otpEnabled) TextButton(onClick = { otp = !otp; sent = false; code = "" },modifier = Modifier.fillMaxWidth()) { Text(if (otp) "Gunakan PIN pengurus" else "Masuk dengan OTP SMS") }
             else Text("Belum punya PIN atau lupa PIN? Hubungi pengurus RT Anda.",color = Muted,fontSize = 12.sp,lineHeight = 18.sp)
-            TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://rtsmartpro.amarlo.online/privacy/"))) }) { Text("Kebijakan privasi",fontSize = 12.sp) }
+            EnvironmentRegistration { url ->
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                    .onFailure { vm.message = "Tautan belum dapat dibuka. Hubungi WhatsApp +6285814654689 atau kunjungi rtsmartpro.amarlo.online/pendaftaran/." }
+            }
+            TextButton(onClick = {
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://rtsmartpro.amarlo.online/privacy/"))) }
+                    .onFailure { vm.message = "Tautan belum dapat dibuka. Kunjungi rtsmartpro.amarlo.online/privacy/ melalui browser." }
+            }) { Text("Kebijakan privasi",fontSize = 12.sp) }
             Text("PT Deploy Dulu Pulang Nanti",fontSize = 11.sp,color = Muted)
         }
     }

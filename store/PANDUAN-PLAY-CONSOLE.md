@@ -4,7 +4,7 @@ Developer: **PT Deploy Dulu Pulang Nanti**
 
 Package: `com.deploydulupulangnanti.rtsmartpro`
 
-Versi rilis: 1.0.2 (3)
+Versi rilis: 1.0.3 (4)
 
 Email dukungan: seandyadryan2@gmail.com
 
@@ -19,6 +19,7 @@ Video `RT-Smart-PRO-promo-id.mp4`: 1920×1080, H.264/AAC, 30 detik, teks Indones
 ## URL publik
 
 - Privasi: https://rtsmartpro.amarlo.online/privacy/
+- Pendaftaran lingkungan: https://rtsmartpro.amarlo.online/pendaftaran/
 - Penghapusan akun: https://rtsmartpro.amarlo.online/delete-account/
 - Dukungan: seandyadryan2@gmail.com
 
@@ -32,7 +33,9 @@ Jika Twilio Verify diaktifkan, nomor HP diproses penyedia OTP. Perbarui pernyata
 
 Buat akun peninjau terpisah sebelum pengajuan. Berikan nomor HP dan PIN akun tersebut pada bagian App access secara privat, beserta langkah login. Jangan gunakan akun pengurus utama. Review Google Play, pengaturan harga aplikasi berbayar, negara distribusi, rating konten, deklarasi target audiens, detail badan usaha, dan persetujuan publikasi tetap dilakukan pemilik Play Console.
 
-Aplikasi tidak menjalankan pembelian digital dalam aplikasi. IPL dibayarkan melalui transfer bank di luar aplikasi dan diverifikasi pengurus. Harga jual aplikasi di Play Store ditetapkan melalui Play Console.
+IPL dibayarkan melalui transfer bank di luar aplikasi dan diverifikasi pengurus. Biaya langganan RT Smart PRO sebesar Rp150.000 per bulan per lingkungan merupakan layanan digital terpisah dari IPL. Rilis 1.0.3 menampilkan pendaftaran lingkungan melalui WhatsApp dari layar login; konfirmasi dan aktivasi dilakukan operator, tanpa penagihan otomatis.
+
+**Sebelum pengajuan Play Store:** alur pendaftaran langganan digital berbayar yang mengarahkan pengguna keluar dari aplikasi termasuk cakupan [kebijakan pembayaran Google Play](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en). Jangan menganggap ketiadaan tombol bayar atau penggunaan WhatsApp otomatis memberikan pengecualian. Sesuaikan alur dengan Play Billing atau program tautan/pembayaran eksternal yang berlaku dan telah diikuti sebelum mengirim rilis ini untuk review. Harga aplikasi di Play Console tidak menggantikan aturan langganan digital tersebut.
 
 ## Rilis
 

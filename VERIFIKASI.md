@@ -1,4 +1,14 @@
-# Rilis Android 1.0.2 (3) — edit dan hapus warga
+# Rilis Android 1.0.3 (4) — pendaftaran lingkungan
+
+- Layar login memuat kartu pendaftaran lingkungan baru dengan harga Rp150.000 per bulan per lingkungan, tanpa minimal rumah. Tombol membuka WhatsApp +6285814654689 dengan draf identitas lingkungan dan pengurus; tombol lain membuka panduan web. Kegagalan membuka tautan menampilkan cara menghubungi operator.
+- Halaman `/pendaftaran/` berisi empat langkah pendaftaran, contoh pesan, dan FAQ. Beranda memuat harga serta tautan panduan. Aktivasi dan konfirmasi langganan dilakukan operator; belum ada penagihan otomatis atau pengaturan masa aktif di database. Pendaftaran warga tetap melalui pengurus RT.
+- 25 pengujian backend kandidat lulus (satu peringatan deprecation Starlette/httpx yang sudah ada). Backend diterapkan dengan cadangan database; tidak ada perubahan skema. HTTPS beranda, panduan, CSS, privasi, penghapusan akun, dan health semuanya HTTP 200.
+- Browser produksi: navigasi beranda → pendaftaran berhasil, FAQ dapat dibuka, tujuan WhatsApp dan draf pesan benar. Tampilan 390 px dan 1440 px diperiksa melalui screenshot; ponsel tidak mengalami overflow horizontal. Pengiriman pesan WhatsApp tidak dilakukan. Screenshot pemeriksaan lokal berada di `output/playwright/`.
+- Kebijakan privasi menjelaskan data pendaftaran yang dikirim melalui WhatsApp. Panduan Play Console mencatat bahwa alur langganan digital melalui tautan eksternal perlu disesuaikan dengan kebijakan pembayaran sebelum pengajuan Play Store. Tombol Android baru belum diuji manual pada perangkat.
+- Lint rilis: 0 error. APK 1.0.3 (4) bertanda tangan dengan sertifikat yang sama seperti rilis sebelumnya dan lolos pemeriksaan alignment 16 KB.
+- `lintRelease assembleRelease bundleRelease :app:compileDebugAndroidTestKotlin` berhasil. APK/AAB 1.0.3 dan checksum tersedia pada folder `release` lokal. Paket listing diperbarui; screenshot promosi lama belum menampilkan kartu pendaftaran baru.
+
+## Rilis Android 1.0.2 (3) — edit dan hapus warga
 
 - Pengurus RT dapat mengedit nama, nomor HP, dan alamat warga dari Data warga. Akun pengurus dilindungi dari edit/hapus melalui endpoint warga. Perubahan nomor HP menghasilkan PIN baru sekali tampil dan mencabut sesi lama; edit nama/alamat mempertahankan PIN dan sesi.
 - Hapus warga memerlukan konfirmasi UI, menonaktifkan akun, mengosongkan nomor HP/hash PIN, dan mencabut sesi. Daftar aktif serta tagihan periode baru tidak lagi memasukkan warga tersebut. Pembayaran dan riwayat IPL lama tetap tersimpan, sehingga saldo kas tidak berubah. Nomor HP yang didaftarkan kembali menghasilkan akun baru tanpa riwayat akun lama.

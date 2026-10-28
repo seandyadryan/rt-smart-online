@@ -18,3 +18,5 @@ captures/
 *.log
 deploy-upload.tar.gz
 tools/node_modules/
+output/playwright/
+.playwright-cli/

@@ -4,7 +4,9 @@ Setiap akun terikat ke satu lingkungan RT. Rekening, nominal tagihan, warga, ber
 
 ## Pengurus RT baru
 
-Operator server membuat pengurus pertama untuk setiap RT. Tidak ada pendaftaran pengurus terbuka di aplikasi. Gunakan nomor HP baru yang belum terdaftar:
+Pendaftaran lingkungan dimulai dari kartu **Daftarkan lingkungan baru** di layar login atau https://rtsmartpro.amarlo.online/pendaftaran/. Harga layanan Rp150.000 per bulan per lingkungan, tanpa minimal rumah; terpisah dari IPL. Tombol membuka draf WhatsApp ke +6285814654689. Konfirmasi langganan, periode, pembayaran, perpanjangan/penghentian, dan aktivasi ditangani operator secara manual; belum ada penagihan berulang atau masa aktif otomatis di database.
+
+Operator server membuat pengurus pertama setelah konfirmasi pendaftaran. Warga tetap hanya dapat ditambahkan oleh pengurus RT. Gunakan nomor HP baru yang belum terdaftar:
 
 ```bash
 cd /opt/rtsmartpro
