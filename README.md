@@ -16,6 +16,14 @@ Aplikasi Android Kotlin native/Jetpack Compose dengan API Python FastAPI dan Pos
 - Isolasi data antar-RT di API, audit aktivitas, pembatasan percobaan login di PostgreSQL, pencabutan sesi saat logout.
 - Layout ponsel/tablet/layar lebar, UI bahasa Indonesia, halaman kebijakan privasi serta pengajuan penghapusan akun.
 
+## Website
+
+Website publik memakai halaman terpisah: `/` (beranda), `/fitur/`, `/harga/`, `/pendaftaran/`, dan `/bantuan/`. Halaman `/privacy/` serta `/delete-account/` memakai identitas dan navigasi yang sama. Fitur dapat dipilih melalui tab, panduan dibaca per langkah, dan pertanyaan umum dibuka saat diperlukan. Halaman menyesuaikan ponsel, tablet, dan desktop.
+
+Logo vektor berada di `backend/public/assets/logo.svg` dan `logo-mark.svg`. Tangkapan layar native untuk website berada di `backend/public/assets/screens/`, dengan label data contoh. Angka 10.000 RT adalah informasi yang diberikan pemilik dan ditampilkan sebagai angka statis; bukan hitungan langsung database. Website tidak membuat data RT fiktif.
+
+Jalankan `node tools/build-website.cjs` untuk membangun ulang HTML dan aset merek. Generator memakai tangkapan layar `captures/phone` bila tersedia, atau salinan yang sudah ada di aset publik. Isi lengkap dokumen privasi dan penghapusan akun dipertahankan ketika layout dibangun ulang. HTML/CSS/JavaScript dan aset disajikan dari server sendiri tanpa font, analytics, atau pustaka JavaScript eksternal.
+
 ## Android
 
 JDK 17+, Android SDK 36. Gradle 8.14, AGP 8.13.1, Kotlin 2.2.20, Compose BOM 2025.09.01. Versi stabil dipilih agar sesuai dengan SDK dan toolchain yang telah tersedia. Minimum Android 8 (API 26), target API 36.

@@ -1,4 +1,13 @@
-# Rilis Android 1.0.3 (4) — pendaftaran lingkungan
+# Website — desain halaman terpisah
+
+- Beranda singkat dengan tampilan asli Android, identitas hijau/krem, dan informasi 10.000 RT terdaftar yang diberikan pemilik. Angka tersebut statis; tidak menambahkan atau mengubah data lingkungan di database.
+- Halaman Fitur, Harga, Panduan daftar, serta Bantuan memiliki URL sendiri. Tab fitur mendukung keyboard, panduan menampilkan satu langkah sekaligus, dan FAQ menggunakan disclosure native. Navigasi ponsel dapat dibuka tanpa JavaScript. Konten fitur dan panduan tetap dapat dibaca tanpa JavaScript melalui fallback.
+- Logo horizontal, simbol, favicon, dan ikon situs tersedia sebagai aset lokal. Tidak ada font atau pustaka dari CDN. Harga Rp150.000 per bulan per lingkungan, tanpa minimal rumah, dan tujuan WhatsApp tetap sama.
+- Pemeriksaan browser lokal pada lebar 320, 390, 768, dan 1440 piksel: tujuh halaman merespons HTTP 200, tidak ada overflow horizontal, serta gambar dan logo termuat. Pratinjau beranda desktop 1440×900 mendekati satu layar. Screenshot pemeriksaan tersedia di `output/playwright/`.
+- Navigasi menu ponsel, tab fitur melalui klik/keyboard, dan perpindahan langkah pendaftaran beserta fokus judul berhasil. Isi dokumen kebijakan privasi dibandingkan dengan versi sebelumnya dan identik setelah atribut navigasi diabaikan.
+- Website diterapkan di Ubuntu melalui pembaruan Docker setelah cadangan database. Ketujuh halaman, logo, CSS, JavaScript, robots, sitemap, dan health API merespons HTTP 200 pada domain produksi; gambar termuat dan browser melaporkan 0 error/0 warning. Fallback produksi tanpa JavaScript menampilkan kelima fitur dan empat langkah panduan. Tidak ada perubahan skema database atau APK.
+
+## Rilis Android 1.0.3 (4) — pendaftaran lingkungan
 
 - Layar login memuat kartu pendaftaran lingkungan baru dengan harga Rp150.000 per bulan per lingkungan, tanpa minimal rumah. Tombol membuka WhatsApp +6285814654689 dengan draf identitas lingkungan dan pengurus; tombol lain membuka panduan web. Kegagalan membuka tautan menampilkan cara menghubungi operator.
 - Halaman `/pendaftaran/` berisi empat langkah pendaftaran, contoh pesan, dan FAQ. Beranda memuat harga serta tautan panduan. Aktivasi dan konfirmasi langganan dilakukan operator; belum ada penagihan otomatis atau pengaturan masa aktif di database. Pendaftaran warga tetap melalui pengurus RT.
